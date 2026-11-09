@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube — Video Editor Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Gravity Space Background -->
+  <div class="space-bg-container" aria-hidden="true">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>
+    <div id="horizon">
+      <div class="glow"></div>
+    </div>
+    <div id="earth"></div>
+  </div>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" aria-hidden="true">
+    <div class="loader">
+      <div class="blackhole">
+        <div class="blackhole-circle"></div>
+        <div class="blackhole-disc"></div>
+      </div>
+
+      <div class="curve">
+        <svg viewBox="0 0 500 500">
+          <path id="loading" d="M73.2,148.6c4-6.1,65.5-96.8,178.6-95.6c111.3,1.2,170.8,90.3,175.1,97"></path>
+          <text width="500">
+            <textPath xlink:href="#loading" href="#loading">
+              loading...
+            </textPath>
+          </text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="site-nav" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo">Portfolio</a>
+
+    <ul class="nav-links" role="list">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="works.html">Works</a></li>
+      <li><a href="reels.html">Reels</a></li>
+      <li><a href="youtube.html">YouTube</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-mobile">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="index.html">Home</a>
+    <a href="works.html">Works</a>
+    <a href="reels.html">Reels</a>
+    <a href="youtube.html">YouTube</a>
+    <a href="contact.html">Contact</a>
+  </div>
+
+  <!-- Page -->
+  <div class="page-wrapper">
+    <main class="page-content">
+      <header class="page-header">
+        <span class="page-eyebrow">YouTube</span>
+        <h1 class="page-title">YouTube Videos</h1>
+        <div class="page-divider"></div>
+      </header>
+
+      <div class="content-area">
+        <!-- YouTube videos will be added here -->
+      </div>
+    </main>
+
+    <footer>
+      <div class="site-footer">
+        <div class="footer-inner">
+          <p class="footer-copy">&copy; <span id="year"></span> Portfolio. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js?v=swipe_v5"></script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

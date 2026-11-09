@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Works — Video Editor Portfolio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ====================================================
+       FOLDER SCALE TOKEN
+       All folder measurements = multiplier × var(--f)
+       ==================================================== */
+    :root {
+      --f: 3.4px;
+    }
+    @media (min-width: 480px)  { :root { --f: 4px;   } }
+    @media (min-width: 768px)  { :root { --f: 4.8px; } }
+    @media (min-width: 1024px) { :root { --f: 5.2px; } }
+
+    /* Hidden SVG filter anchor */
+    .svg-defs {
+      position: absolute;
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    /* ====================================================
+       FOLDER COMPONENT
+       ==================================================== */
+
+    /* Clickable outer wrapper */
+    .folder-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      user-select: none;
+    }
+    .folder-wrap:active { transform: scale(0.96); }
+
+    /* Folder body */
+    .folder {
+      border-top: calc(0.4 * var(--f)) solid rgba(255,255,255,0.5);
+      width:         calc(50 * var(--f));
+      aspect-ratio:  1;
+      border-radius: calc(12 * var(--f));
+      position:      relative;
+      overflow:      hidden;
+      background:    var(--color-secondary);
+      box-shadow:
+        -1px 2px 0 2px color-mix(in srgb, var(--color-secondary), black 65%),
+        0 calc(3 * var(--f)) calc(4 * var(--f))
+          color-mix(in srgb, var(--color-secondary), rgba(0,0,0,0.04) 80%);
+    }
+
+    /* Emoji badge (bottom-left) */
+    .folder::after {
+      content:          attr(data-icon);
+      position:         absolute;
+      left:             calc(6 * var(--f));
+      bottom:           calc(6 * var(--f));
+      z-index:          11;
+      font-size:        calc(5.5 * var(--f));
+      line-height:      calc(6   * var(--f));
+      padding:          0 calc(0.5 * var(--f));
+      border-radius:    calc(1.5 * var(--f));
+      backdrop-filter:  blur(0.2rem);
+      background:       rgba(0,0,0,0.14);
+    }
+
+    /* Noise dots */
+    .fd-dots {
+      pointer-events: none;
+      filter:       url(#noise);
+      position:     absolute;
+      inset:        0;
+      border-radius: inherit;
+      mix-blend-mode: screen;
+      opacity:      0.16;
+    }
+
+    /* Scratches */
+    .fd-scratches { pointer-events: none; }
+    .fd-scratches::before,
+    .fd-scratches::after {
+      filter:       url(#noise);
+      content:      "";
+      position:     absolute;
+      inset:        0;
+      border-radius: inherit;
+      mix-blend-mode: screen;
+    }
+    .fd-scratches::before {
+      opacity:   0.12;
+      transform: rotate(55deg) scaleY(61.5);
+    }
+    .fd-scratches::after {
+      opacity:   0.15;
+      transform: rotate(25deg) scaleY(111.5);
+    }
+
+    /* Paper documents inside */
+    .fd-doc-wrap {
+      position: absolute;
+      inset:    0;
+      mask:     linear-gradient(to bottom, black 70%, transparent 80%);
+    }
+
+    .fd-doc {
+      position:      absolute;
+      left:          calc(8 * var(--f));
+      top:           calc(8 * var(--f));
+      right:         calc(8 * var(--f));
+      height:        calc(26 * var(--f));
+      background:    linear-gradient(to bottom, white 70%, var(--color-secondary));
+      border-radius: calc(4 * var(--f)) calc(4 * var(--f)) 0 0;
+      box-shadow:    0 0 0.8rem rgba(0,0,0,0.2);
+      transition:    top 0.3s ease;
+      display:       flex;
+      flex-direction: column;
+      padding:       calc(4 * var(--f)) calc(3 * var(--f));
+      gap:           calc(2 * var(--f));
+    }
+
+    .fd-doc::before {
+      content:          "";
+      position:         absolute;
+      left:             calc(2 * var(--f));
+      top:              0;
+      right:            calc(2 * var(--f));
+      bottom:           0;
+      transform:        translateY(calc(-1   * var(--f))) rotate(5deg);
+      z-index:          -1;
+      background:       color-mix(in srgb, var(--color-secondary), white 20%);
+      border:           calc(0.3 * var(--f)) solid rgba(255,255,255,0.1);
+      border-radius:    inherit;
+      transition:       transform 0.3s ease;
+      transform-origin: right;
+    }
+
+    .fd-doc::after {
+      content:          "";
+      position:         absolute;
+      left:             calc(2   * var(--f));
+      top:              0;
+      right:            calc(2   * var(--f));
+      bottom:           0;
+      transform:        translateY(calc(-2.5 * var(--f))) rotate(-5deg);
+      z-index:          -2;
+      border:           calc(0.3 * var(--f)) solid rgba(255,255,255,0.1);
+      background:       color-mix(in srgb, var(--color-secondary), black 5%);
+      border-radius:    inherit;
+      transition:       transform 0.3s ease;
+      transform-origin: left;
+    }
+
+    .fd-row {
+      display:        flex;
+      flex-direction: column;
+      gap:            calc(1.5 * var(--f));
+    }
+
+    .fd-ph {
+      background:    rgba(0,0,0,0.08);
+      width:         100%;
+      height:        calc(3 * var(--f));
+      border-radius: calc(4 * var(--f));
+    }
+    .fd-row   .fd-ph:last-child { width: 66%; }
+    .fd-row:last-child .fd-ph   { width: 40%; }
+
+    /* Foreground panel */
+    .fd-fg-wrap {
+      position: absolute;
+      inset:    0;
+    }
+
+    .fd-fg {
+      position:      absolute;
+      border-radius: 0 calc(6 * var(--f));
+      bottom:        calc(-0.6 * var(--f));
+      left:          0;
+      right:         0;
+      aspect-ratio:  1 / 0.498;
+    }
+
+    .fd-fg::before {
+      content:          "";
+      position:         absolute;
+      inset:            0;
+      border-radius:    inherit;
+      --hl:  rgba(255,255,255,0.4);
+      --dk:  color-mix(in srgb, var(--color-secondary), black 30%);
+      background:
+        radial-gradient(calc(14  * var(--f)) calc(0.7 * var(--f)) at calc(30   * var(--f)) calc(24.6 * var(--f)), var(--dk), transparent),
+        radial-gradient(calc(14  * var(--f)) calc(0.7 * var(--f)) at calc(10.3 * var(--f)) calc(24.6 * var(--f)), var(--dk), transparent),
+        radial-gradient(calc(14  * var(--f)) calc(0.7 * var(--f)) at calc(45   * var(--f)) 0, var(--hl), transparent),
+        radial-gradient(calc(6   * var(--f)) calc(2   * var(--f)) at calc(50   * var(--f)) 0, var(--hl), transparent),
+        color-mix(in srgb, var(--color-primary), rgba(255 255 255 / 0.1) 70%);
+      backdrop-filter:  blur(0.5rem);
+      border-bottom:    calc(0.25 * var(--f)) solid color-mix(in srgb, var(--color-secondary), black 30%);
+    }
+
+    /* Folder tab (left section) */
+    .fd-tab {
+      background:    color-mix(in srgb, var(--color-primary), rgba(255 255 255 / 0.1) 70%);
+      backdrop-filter: blur(0.5rem);
+      position:      absolute;
+      inset:         0;
+      --ts:          calc(7 * var(--f));
+      height:        var(--ts);
+      transform:     translateY(calc(-1 * var(--ts)));
+      border-top:    3px solid rgba(255,255,255,0.5);
+      border-radius: calc(12 * var(--f)) 0 0 0;
+      width:         calc(20 * var(--f));
+    }
+
+    /* Tab bridge */
+    .fd-tab-2 {
+      position:      absolute;
+      left:          calc(20 * var(--f));
+      top:           calc(-7 * var(--f));
+      width:         calc(4  * var(--f));
+      --ts:          calc(7  * var(--f));
+      height:        var(--ts);
+      background:    color-mix(in srgb, var(--color-primary), rgba(255 255 255 / 0.1) 70%);
+      backdrop-filter: blur(0.5rem);
+      border-top:    3px solid rgba(255,255,255,0.5);
+      border-radius: 0 calc(12 * var(--f)) 0 0;
+    }
+
+    /* Tab corner mask */
+    .fd-tab-3 {
+      position:      absolute;
+      left:          calc(24 * var(--f));
+      top:           calc(-4 * var(--f));
+      width:         calc(4  * var(--f));
+      --ts:          calc(4  * var(--f));
+      height:        var(--ts);
+      border-radius: 0 calc(12 * var(--f)) 0 0;
+      mask-image:    radial-gradient(200% 200% at 100% 0%, transparent 50%, black 50%);
+      background:    color-mix(in srgb, var(--color-primary), rgba(255 255 255 / 0.1) 70%);
+      backdrop-filter: blur(0.5rem);
+    }
+
+    /* ── Hover: papers fan out ── */
+    @media (hover: hover) {
+      .folder-wrap:hover .fd-doc { top: calc(2 * var(--f)); }
+      .folder-wrap:hover .fd-doc::before {
+        transform: translateY(calc(-1   * var(--f))) translateX(calc(0.5 * var(--f))) rotate(15deg);
+      }
+      .folder-wrap:hover .fd-doc::after {
+        transform: translateY(calc(-2.5 * var(--f))) rotate(-15deg);
+      }
+    }
+
+    /* ── Click: papers fly up (before view switch) ── */
+    .folder-wrap.opening .fd-doc {
+      top:     calc(-6 * var(--f)) !important;
+      opacity: 0;
+    }
+    .folder-wrap.opening .fd-doc::before,
+    .folder-wrap.opening .fd-doc::after {
+      transform: translateY(calc(-8 * var(--f))) !important;
+    }
+
+    /* Folder name label */
+    .folder-label {
+      font-size:      11px;
+      font-weight:    500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color:          var(--text-muted);
+      text-align:     center;
+    }
+
+    /* ====================================================
+       WORKS PAGE — VIEWS & LAYOUT
+       ==================================================== */
+
+    .works-container {
+      position: relative;
+      min-height: 400px;
+    }
+
+    /* View base: hidden */
+    .works-view {
+      display: none;
+    }
+
+    /* View active: shown with fade-in */
+    .works-view.active {
+      display: block;
+      animation: viewIn 0.22s ease both;
+    }
+
+    @keyframes viewIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    /* ── Folder grids ── */
+    .folders-grid {
+      display:               grid;
+      grid-template-columns: repeat(3, calc(50 * var(--f)));
+      gap:                   calc(5 * var(--f)) calc(7 * var(--f));
+      justify-content:       center;
+      padding:               4px 0;
+    }
+
+    /* 2 sub-folders (Real / AI) — centered */
+    .subfolders-grid {
+      display:               grid;
+      grid-template-columns: repeat(2, calc(50 * var(--f)));
+      gap:                   calc(5 * var(--f)) calc(7 * var(--f));
+      justify-content:       center;
+      padding:               4px 0;
+    }
+
+    @media (max-width: 560px) {
+      .folders-grid { grid-template-columns: repeat(2, calc(50 * var(--f))); }
+    }
+    @media (max-width: 340px) {
+      .folders-grid,
+      .subfolders-grid { grid-template-columns: repeat(1, calc(50 * var(--f))); }
+    }
+
+    /* ── Sub-view topbar (back + breadcrumb) ── */
+    .view-topbar {
+      display:     flex;
+      align-items: center;
+      gap:         16px;
+      margin-bottom: 40px;
+      flex-wrap:   wrap;
+    }
+
+    .back-btn {
+      display:        inline-flex;
+      align-items:    center;
+      gap:            6px;
+      background:     none;
+      border:         1px solid var(--border-light);
+      color:          var(--text-muted);
+      font-family:    var(--font);
+      font-size:      11px;
+      font-weight:    500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding:        7px 14px;
+      border-radius:  4px;
+      cursor:         pointer;
+      transition:     color var(--transition), border-color var(--transition);
+    }
+    .back-btn:hover {
+      color:         var(--text);
+      border-color:  var(--text-muted);
+    }
+
+    .breadcrumb {
+      font-size:  13px;
+      color:      var(--text-muted);
+    }
+    .breadcrumb strong {
+      color:       var(--text);
+      font-weight: 500;
+    }
+
+    /* ── Sub-view header ── */
+    .sub-header {
+      margin-bottom: 40px;
+    }
+    .sub-header-label {
+      display:        block;
+      font-size:      11px;
+      font-weight:    500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color:          var(--text-muted);
+      margin-bottom:  10px;
+    }
+    .sub-header-title {
+      font-size:      clamp(22px, 3vw, 34px);
+      font-weight:    600;
+      letter-spacing: -0.02em;
+      color:          var(--text);
+    }
+
+    /* ====================================================
+       INSTAGRAM POST / REEL UI VIDEO GRID (9:16 Ratio)
+       ==================================================== */
+
+    .video-grid {
+      display:               grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 290px));
+      gap:                   28px;
+      justify-content:       center;
+    }
+
+    /* Instagram post frame */
+    .insta-post-card {
+      background:    #1a1a1a;
+      border:        1px solid #2d2d2d;
+      border-radius: 12px;
+      overflow:      hidden;
+      display:       flex;
+      flex-direction: column;
+      box-shadow:    0 4px 20px rgba(0, 0, 0, 0.4);
+      transition:    transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .insta-post-card:hover {
+      border-color: #3d3d3d;
+    }
+
+    /* Top header */
+    .insta-header {
+      display:         flex;
+      align-items:     center;
+      justify-content: space-between;
+      padding:         10px 12px;
+      background:      #1a1a1a;
+      border-bottom:   1px solid #262626;
+    }
+
+    .insta-user-info {
+      display:     flex;
+      align-items: center;
+      gap:         10px;
+    }
+
+    .insta-avatar {
+      width:           34px;
+      height:          34px;
+      border-radius:   50%;
+      background:      linear-gradient(45deg, #f09433, #dc2743, #bc1888);
+      padding:         2px;
+      display:         flex;
+      align-items:     center;
+      justify-content: center;
+      flex-shrink:     0;
+    }
+
+    .insta-avatar-inner {
+      width:           100%;
+      height:          100%;
+      border-radius:   50%;
+      background:      #262626;
+      color:           #F2F2F2;
+      font-size:       12px;
+      font-weight:     700;
+      display:         flex;
+      align-items:     center;
+      justify-content: center;
+      border:          1.5px solid #1a1a1a;
+    }
+
+    .insta-user-meta {
+      display:        flex;
+      flex-direction: column;
+      line-height:    1.2;
+    }
+
+    .insta-username-row {
+      display:     flex;
+      align-items: center;
+      gap:         4px;
+    }
+
+    .insta-username {
+      font-size:      13px;
+      font-weight:    600;
+      color:          #F2F2F2;
+      letter-spacing: -0.01em;
+    }
+
+    .insta-verified-badge {
+      display:     inline-block;
+      flex-shrink: 0;
+    }
+
+    .insta-location {
+      font-size:  11px;
+      color:      #A0A0A0;
+      margin-top: 1px;
+    }
+
+    .insta-more-btn {
+      background:     none;
+      border:         none;
+      color:          #A0A0A0;
+      cursor:         pointer;
+      padding:        4px;
+      display:        flex;
+      align-items:    center;
+      justify-content: center;
+      border-radius:  4px;
+      transition:     color 0.15s;
+    }
+
+    .insta-more-btn:hover {
+      color: #F2F2F2;
+    }
+
+    /* Media Area — Reel Ratio 9:16 */
+    .insta-media-wrap {
+      width:           100%;
+      aspect-ratio:    9 / 16;
+      background:      #0d0d0d;
+      position:        relative;
+      display:         flex;
+      align-items:     center;
+      justify-content: center;
+      overflow:        hidden;
+    }
+
+    .insta-media-wrap video {
+      width:      100%;
+      height:     100%;
+      object-fit: cover;
+      display:    block;
+      background: #000;
+    }
+
+    /* Footer actions */
+    .insta-footer {
+      padding:    10px 12px 12px;
+      background: #1a1a1a;
+      border-top: 1px solid #262626;
+    }
+
+    .insta-actions {
+      display:         flex;
+      align-items:     center;
+      justify-content: space-between;
+    }
+
+    .insta-left-actions {
+      display:     flex;
+      align-items: center;
+      gap:         12px;
+    }
+
+    .insta-action-btn {
+      background:      none;
+      border:          none;
+      color:           #F2F2F2;
+      cursor:          pointer;
+      padding:         2px;
+      display:         inline-flex;
+      align-items:     center;
+      justify-content: center;
+      transition:      transform 0.15s ease, color 0.15s ease;
+    }
+
+    .insta-action-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .insta-action-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* Like heart active state */
+    .insta-action-btn.like-btn.liked svg {
+      fill:      #ed4956;
+      stroke:    #ed4956;
+      animation: heartPop 0.3s ease;
+    }
+
+    /* Bookmark active state */
+    .insta-action-btn.bookmark-btn.saved svg {
+      fill:   #F2F2F2;
+      stroke: #F2F2F2;
+    }
+
+    @keyframes heartPop {
+      0%   { transform: scale(1);   }
+      50%  { transform: scale(1.3); }
+      100% { transform: scale(1);   }
+    }
+
+    /* Carousel dots */
+    .insta-carousel-dots {
+      display:     flex;
+      align-items: center;
+      gap:         4px;
+    }
+
+    .insta-carousel-dots .dot {
+      width:         5px;
+      height:        5px;
+      border-radius: 50%;
+      background:    #404040;
+      transition:    background 0.2s;
+    }
+
+    .insta-carousel-dots .dot.active {
+      background: #0095f6;
+    }
+
+    /* Empty placeholder card */
+    .insta-post-card.empty-slot {
+      opacity:      0.35;
+      border-style: dashed;
+      background:   rgba(26, 26, 26, 0.4);
+    }
+
+    .insta-post-card.empty-slot .insta-media-wrap {
+      background: transparent;
+    }
+
+    .empty-placeholder-content {
+      color:          #555;
+      font-size:      11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight:    500;
+    }
+
+    @media (max-width: 640px) {
+      .video-grid {
+        grid-template-columns: 1fr;
+        max-width: 360px;
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Gravity Space Background -->
+  <div class="space-bg-container" aria-hidden="true">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>
+    <div id="horizon">
+      <div class="glow"></div>
+    </div>
+    <div id="earth"></div>
+  </div>
+
+  <!-- SVG Noise Filter (used by folder texture layers) -->
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <filter id="noise">
+      <feTurbulence baseFrequency="0.195"/>
+      <feColorMatrix values="0 0 0 9 -5
+                             0 0 0 9 -4
+                             0 0 0 9 -5
+                             0 0 0 0 1"/>
+    </filter>
+  </svg>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" aria-hidden="true">
+    <div class="loader">
+      <div class="blackhole">
+        <div class="blackhole-circle"></div>
+        <div class="blackhole-disc"></div>
+      </div>
+
+      <div class="curve">
+        <svg viewBox="0 0 500 500">
+          <path id="loading" d="M73.2,148.6c4-6.1,65.5-96.8,178.6-95.6c111.3,1.2,170.8,90.3,175.1,97"></path>
+          <text width="500">
+            <textPath xlink:href="#loading" href="#loading">
+              loading...
+            </textPath>
+          </text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="site-nav" aria-label="Main navigation">
+    <a href="index.html" class="nav-logo">Portfolio</a>
+
+    <ul class="nav-links" role="list">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="works.html">Works</a></li>
+      <li><a href="reels.html">Reels</a></li>
+      <li><a href="youtube.html">YouTube</a></li>
+      <li><a href="contact.html">Contact</a></li>
+    </ul>
+
+    <button class="nav-hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-mobile">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div class="nav-mobile" id="nav-mobile">
+    <a href="index.html">Home</a>
+    <a href="works.html">Works</a>
+    <a href="reels.html">Reels</a>
+    <a href="youtube.html">YouTube</a>
+    <a href="contact.html">Contact</a>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       PAGE WRAPPER
+       ══════════════════════════════════════════════ -->
+  <div class="page-wrapper">
+    <main class="page-content">
+      <div class="works-container">
+
+        <!-- ──────────────────────────────────────
+             VIEW 1 — CATEGORY FOLDERS (6 folders)
+             ────────────────────────────────────── -->
+        <div class="works-view active" id="view-main">
+          <header class="page-header">
+            <span class="page-eyebrow">Works</span>
+            <h1 class="page-title">Project Gallery</h1>
+            <div class="page-divider"></div>
+          </header>
+
+          <!-- Rendered by JS -->
+          <div class="folders-grid" id="main-grid"></div>
+        </div>
+
+        <!-- ──────────────────────────────────────
+             VIEW 2 — SUB-TYPE FOLDERS (Real / AI)
+             ────────────────────────────────────── -->
+        <div class="works-view" id="view-category">
+          <div class="view-topbar">
+            <button class="back-btn" id="btn-to-main">← Works</button>
+            <span class="breadcrumb">
+              Works / <strong id="bc-cat"></strong>
+            </span>
+          </div>
+
+          <div class="sub-header">
+            <span class="sub-header-label">Choose a type</span>
+            <h2 class="sub-header-title" id="cat-title"></h2>
+          </div>
+
+          <!-- Rendered by JS -->
+          <div class="subfolders-grid" id="sub-grid"></div>
+        </div>
+
+        <!-- ──────────────────────────────────────
+             VIEW 3 — VIDEO GRID
+             ────────────────────────────────────── -->
+        <div class="works-view" id="view-subcategory">
+          <div class="view-topbar">
+            <button class="back-btn" id="btn-to-category">← Back</button>
+            <span class="breadcrumb">
+              Works / <strong id="bc-sub-cat"></strong> / <strong id="bc-sub-type"></strong>
+            </span>
+          </div>
+
+          <div class="sub-header">
+            <span class="sub-header-label" id="sub-header-label"></span>
+            <h2 class="sub-header-title" id="sub-title"></h2>
+          </div>
+
+          <!-- Instagram Video Grid — Rendered via JS -->
+          <div class="video-grid" id="video-grid"></div>
+        </div>
+
+      </div><!-- /.works-container -->
+    </main>
+
+    <footer>
+      <div class="site-footer">
+        <div class="footer-inner">
+          <p class="footer-copy">&copy; <span id="year"></span> Portfolio. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js?v=swipe_v5"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* ══════════════════════════════════════════════════════
+       DATA
+       ══════════════════════════════════════════════════════ */
+
+    const CATEGORIES = [
+      {
+        id: 'school',
+        name: 'School',
+        icon: '🎓',
+        primary:   '#4f86f7',
+        secondary: '#3b6de0'
+      },
+      {
+        id: 'realestate',
+        name: 'Real Estate',
+        icon: '🏠',
+        primary:   '#34c98a',
+        secondary: '#23a872'
+      },
+      {
+        id: 'promotional',
+        name: 'Promotional',
+        icon: '📣',
+        primary:   '#ff8c42',
+        secondary: '#e06728'
+      },
+      {
+        id: 'cafes',
+        name: 'Cafes',
+        icon: '☕',
+        primary:   '#d48a5e',
+        secondary: '#bc7048'
+      },
+      {
+        id: 'others-a',
+        name: 'Others',
+        icon: '📁',
+        primary:   '#b57bee',
+        secondary: '#9960d5'
+      },
+      {
+        id: 'others-b',
+        name: 'Others',
+        icon: '📁',
+        primary:   '#f06080',
+        secondary: '#d84a68'
+      }
+    ];
+
+    const SUB_FOLDERS = [
+      {
+        id: 'real',
+        name: 'Real',
+        icon: '🎬',
+        primary:   '#f0b429',
+        secondary: '#d09820'
+      },
+      {
+        id: 'ai',
+        name: 'AI',
+        icon: '🤖',
+        primary:   '#7c6af0',
+        secondary: '#5f4fd8'
+      }
+    ];
+
+    /* ══════════════════════════════════════════════════════
+       FOLDER BUILDER
+       ══════════════════════════════════════════════════════ */
+
+    function buildFolder(data) {
+      const wrap = document.createElement('div');
+      wrap.className = 'folder-wrap';
+      wrap.dataset.id = data.id;
+
+      wrap.innerHTML = `
+        <div class="folder"
+             style="--color-primary:${data.primary}; --color-secondary:${data.secondary};"
+             data-icon="${data.icon}">
+
+          <!-- Noise layers -->
+          <div class="fd-dots"></div>
+          <div class="fd-scratches"></div>
+
+          <!-- Paper documents -->
+          <div class="fd-doc-wrap">
+            <div class="fd-doc">
+              <div class="fd-row">
+                <div class="fd-ph"></div>
+                <div class="fd-ph"></div>
+              </div>
+              <div class="fd-row">
+                <div class="fd-ph"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Foreground panel + tab -->
+          <div class="fd-fg-wrap">
+            <div class="fd-fg">
+              <div class="fd-tab"></div>
+              <div class="fd-tab-2"></div>
+              <div class="fd-tab-3"></div>
+              <div class="fd-dots"></div>
+              <div class="fd-scratches"></div>
+            </div>
+          </div>
+
+        </div>
+        <span class="folder-label">${data.name}</span>
+      `;
+
+      return wrap;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       VIEW MANAGEMENT
+       ══════════════════════════════════════════════════════ */
+
+    function showView(id) {
+      document.querySelectorAll('.works-view').forEach(v => v.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      // Scroll back to top of content
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* Animate folder opening then switch view */
+    function openWithAnim(folderWrap, callback) {
+      folderWrap.classList.add('opening');
+      setTimeout(() => {
+        folderWrap.classList.remove('opening');
+        callback();
+      }, 280);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       RENDER — MAIN CATEGORIES
+       ══════════════════════════════════════════════════════ */
+
+    function renderMain() {
+      const grid = document.getElementById('main-grid');
+      grid.innerHTML = '';
+
+      CATEGORIES.forEach(cat => {
+        const wrap = buildFolder(cat);
+
+        wrap.addEventListener('click', function () {
+          openWithAnim(wrap, () => openCategory(cat));
+        });
+
+        grid.appendChild(wrap);
+      });
+    }
+
+    /* ══════════════════════════════════════════════════════
+       OPEN CATEGORY → show Real / AI sub-folders
+       ══════════════════════════════════════════════════════ */
+
+    let currentCategory = null;
+
+    function openCategory(cat) {
+      currentCategory = cat;
+
+      // Update breadcrumb & title
+      document.getElementById('bc-cat').textContent = cat.name;
+      document.getElementById('cat-title').textContent = cat.name;
+
+      // Render sub-folders
+      const grid = document.getElementById('sub-grid');
+      grid.innerHTML = '';
+
+      SUB_FOLDERS.forEach(sub => {
+        const wrap = buildFolder(sub);
+
+        wrap.addEventListener('click', function () {
+          openWithAnim(wrap, () => openSubFolder(sub));
+        });
+
+        grid.appendChild(wrap);
+      });
+
+      showView('view-category');
+    }
+
+    /* ══════════════════════════════════════════════════════
+       PORTFOLIO WORKS MEDIA REPOSITORY
+       ══════════════════════════════════════════════════════ */
+    const WORKS_MEDIA = {
+      'school/real': [
+        {
+          id: 'school-real-1',
+          title: 'School Project',
+          src: 'media/school-real-1.mp4',
+          originalUrl: 'https://linkpitara.site/watch/6ae2cf34df3d12efde9b777e'
+        }
+      ]
+    };
+
+    function renderSubcategoryVideos(catId, subId) {
+      const key = `${catId}/${subId}`;
+      const items = WORKS_MEDIA[key] || [];
+      const grid = document.getElementById('video-grid');
+      grid.innerHTML = '';
+
+      // Render actual Instagram post card with video
+      items.forEach(item => {
+        const card = document.createElement('article');
+        card.className = 'insta-post-card';
+        card.innerHTML = `
+          <header class="insta-header">
+            <div class="insta-user-info">
+              <div class="insta-avatar">
+                <div class="insta-avatar-inner">M</div>
+              </div>
+              <div class="insta-user-meta">
+                <div class="insta-username-row">
+                  <span class="insta-username">maari_mech_</span>
+                  <svg class="insta-verified-badge" viewBox="0 0 24 24" width="13" height="13">
+                    <path fill="#0095f6" d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.9 14.7l-4.2-4.2 1.4-1.4 2.8 2.8 6.8-6.8 1.4 1.4-8.2 8.2z"/>
+                  </svg>
+                </div>
+                <span class="insta-location">${currentCategory ? currentCategory.name : 'Portfolio'} · Real Edition</span>
+              </div>
+            </div>
+            <button class="insta-more-btn" aria-label="More options">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <circle cx="12" cy="5" r="1.5"></circle>
+                <circle cx="12" cy="12" r="1.5"></circle>
+                <circle cx="12" cy="19" r="1.5"></circle>
+              </svg>
+            </button>
+          </header>
+
+          <div class="insta-media-wrap">
+            <video src="${item.src}" controls playsinline preload="metadata"></video>
+          </div>
+
+          <footer class="insta-footer">
+            <div class="insta-actions">
+              <div class="insta-left-actions">
+                <button class="insta-action-btn like-btn" aria-label="Like" onclick="this.classList.toggle('liked')">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                </button>
+                <button class="insta-action-btn" aria-label="Comment">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                  </svg>
+                </button>
+                <button class="insta-action-btn" aria-label="Share">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                  </svg>
+                </button>
+              </div>
+
+              <div class="insta-carousel-dots">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </div>
+
+              <div class="insta-right-actions">
+                <button class="insta-action-btn bookmark-btn" aria-label="Save" onclick="this.classList.toggle('saved')">
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </footer>
+        `;
+        grid.appendChild(card);
+      });
+
+      // Fill remaining slots up to 6 with clean placeholder Instagram cards
+      const emptyCount = Math.max(0, 6 - items.length);
+      for (let i = 0; i < emptyCount; i++) {
+        const emptyCard = document.createElement('article');
+        emptyCard.className = 'insta-post-card empty-slot';
+        emptyCard.innerHTML = `
+          <header class="insta-header">
+            <div class="insta-user-info">
+              <div class="insta-avatar" style="background:#333;">
+                <div class="insta-avatar-inner" style="background:#222;color:#666;">+</div>
+              </div>
+              <div class="insta-user-meta">
+                <span class="insta-username" style="color:#666;">maari_mech_</span>
+                <span class="insta-location" style="color:#444;">Upcoming Project</span>
+              </div>
+            </div>
+          </header>
+          <div class="insta-media-wrap">
+            <span class="empty-placeholder-content">+ Add Work</span>
+          </div>
+          <footer class="insta-footer">
+            <div class="insta-actions" style="opacity:0.35;">
+              <div class="insta-left-actions">
+                <span style="font-size:14px;color:#aaa;">♡</span>
+                <span style="font-size:14px;color:#aaa;">💬</span>
+                <span style="font-size:14px;color:#aaa;">↗</span>
+              </div>
+              <span style="font-size:14px;color:#aaa;">🔖</span>
+            </div>
+          </footer>
+        `;
+        grid.appendChild(emptyCard);
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════
+       OPEN SUB-FOLDER → show video grid
+       ══════════════════════════════════════════════════════ */
+
+    function openSubFolder(sub) {
+      // Update breadcrumbs
+      document.getElementById('bc-sub-cat').textContent  = currentCategory.name;
+      document.getElementById('bc-sub-type').textContent = sub.name;
+
+      // Update header
+      document.getElementById('sub-header-label').textContent = currentCategory.name + ' · ' + sub.name;
+      document.getElementById('sub-title').textContent        = sub.name + ' Videos';
+
+      // Render videos for this specific folder
+      renderSubcategoryVideos(currentCategory.id, sub.id);
+
+      showView('view-subcategory');
+    }
+
+    /* ══════════════════════════════════════════════════════
+       BACK NAVIGATION
+       ══════════════════════════════════════════════════════ */
+
+    document.getElementById('btn-to-main').addEventListener('click', function () {
+      showView('view-main');
+    });
+
+    document.getElementById('btn-to-category').addEventListener('click', function () {
+      showView('view-category');
+    });
+
+    /* ══════════════════════════════════════════════════════
+       INIT
+       ══════════════════════════════════════════════════════ */
+
+    renderMain();
+  </script>
+</body>
+</html>
